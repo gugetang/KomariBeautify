@@ -2,6 +2,7 @@
 
 这是一个自定义的HTML文件（KomariBeautify.html），用于增强Komari探针的功能，基于PurCarte主题实现。文件包含CSS样式和JavaScript脚本，主要添加了欢迎气泡、资产统计、地球渲染组件以及页面保护机制。所有组件均设计为响应式，支持移动设备，并与PurCarte主题的CSS变量（如`--accent-9`、`--purcarte-card-color`等）集成，确保视觉一致性。
 
+>> **注意**：适配[Komari](https://github.com/komari-monitor/komari/releases/tag/1.1.3) v1.1.3, [PurCarte](https://github.com/Montia37/komari-theme-purcarte/releases/tag/v1.2.5) v1.2.5，其他版本未经测试，可能无法正常运行
 ## 主要功能
 
 1. **欢迎气泡 (Welcome Bubble)**：
