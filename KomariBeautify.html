@@ -1069,8 +1069,7 @@ header a img[alt="logo"], .bubble-logo-image {
 </div>
 </div>
 
-<script src="//unpkg.com/globe.gl">
-</script>
+<script src="//unpkg.com/globe.gl"></script>
 <script>
 const EMOJI_MAP = {
   'CN': 'CN', 'HK': 'HK', 'TW': 'TW', 'MO': 'MO', 'JP': 'JP', 'KR': 'KR', 'KP': 'KP', 'MN': 'MN',
@@ -2069,6 +2068,56 @@ function initializeFinanceWidget() {
     dateInput.parentNode.replaceChild(newDateInput, dateInput);
     let currentDisplayRemainValue = displayRemainValue;
     let currentRemainValueCNY = remainValueCNY;
+    newDateInput.onchange = () => {
+      const selectedDate = newDateInput.value;
+      const now = new Date();
+      const todayStr = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })).toISOString().split('T')[0];
+      let calculationTime;
+      if (selectedDate === todayStr) {
+        calculationTime = now;
+      } else {
+        calculationTime = new Date(selectedDate + 'T00:00:00+08:00');
+      }
+      let newRemainValueCNY = 0;
+      if (node.expired_at) {
+        const { price: priceCNY } = getPriceInfo(node);
+        const exp = new Date(node.expired_at);
+        const nowUTC = new Date(calculationTime.toISOString());
+        const diffMs = exp - nowUTC;
+        const diffYears = diffMs / (1000 * 60 * 60 * 24 * 365);
+
+        if (diffYears > LONG_TERM_YEARS) {
+          newRemainValueCNY = priceCNY;
+        } else {
+          const billingCycleMs = node.billing_cycle * 24 * 60 * 60 * 1000;
+          if (diffMs > 0 && billingCycleMs > 0) {
+            newRemainValueCNY = priceCNY * (diffMs / billingCycleMs);
+          }
+        }
+      }
+      currentRemainValueCNY = newRemainValueCNY;
+      const currentRate = exchangeRates[userCurrency] || 1;
+      const currentSym = currencySymbols[userCurrency] || userCurrency;
+      const remainVal = currentRemainValueCNY * currentRate;
+      currentDisplayRemainValue = parseFloat(remainVal.toFixed(2));
+      document.getElementById('trade-remain-value').textContent = `${currentSym} ${currentDisplayRemainValue.toFixed(2)}`;
+      const tradeAmount = parseFloat(newAmountInput.value);
+      if (!isNaN(tradeAmount) && tradeAmount >= 0) {
+        const premium = tradeAmount - currentDisplayRemainValue;
+        const premiumRate = currentDisplayRemainValue > 0 ? (premium / currentDisplayRemainValue * 100) : 0;
+        const premiumValueEl = document.getElementById('trade-premium-value');
+        const premiumRateEl = document.getElementById('trade-premium-rate');
+        premiumValueEl.textContent = `${currentSym} ${premium.toFixed(2)}`;
+        premiumRateEl.textContent = `${premiumRate > 0 ? '+' : ''}${premiumRate.toFixed(2)}%`;
+        if (premium > 0) {
+          premiumValueEl.classList.remove('positive');
+          premiumRateEl.classList.remove('positive');
+        } else {
+          premiumValueEl.classList.add('positive');
+          premiumRateEl.classList.add('positive');
+        }
+      }
+    };
     newAmountInput.oninput = () => {
       const tradeAmount = parseFloat(newAmountInput.value);
       if (!isNaN(tradeAmount) && tradeAmount >= 0) {
